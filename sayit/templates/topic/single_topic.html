@@ -1,0 +1,359 @@
+{%- extends "base.html" %}
+{%- from "common_macros/load_style_script.html" import highlightjs_css,
+                                          fontawesome_css, moment_js,
+                                          highlight_js, ajax_csrf_setup %}
+{%- from "common_macros/macro.html" import render_flash_msg, render_avatar,
+                                        add_form_div with context %}
+{%- from "topic/macro.html" import render_bookmark_follow_btn,
+                             render_reply_upvote, render_topic_upvote, 
+                             elite_pin_edit, render_forbid_reason with context %}
+{%- block more_style %}
+    <link href="//cdn.bootcss.com/at.js/1.5.1/css/jquery.atwho.min.css" rel="stylesheet">
+    {{ highlightjs_css() }}
+    {{ fontawesome_css() }}
+{% endblock -%}
+{%- block more_script %}
+    <script src="//cdn.bootcss.com/Caret.js/0.3.1/jquery.caret.min.js"></script>
+    <script src="//cdn.bootcss.com/at.js/1.5.1/js/jquery.atwho.min.js"></script>
+    {{ moment_js() }}
+    {{ highlight_js() }}
+{% endblock -%}
+{%- block title %}{{ topic.title|addlt }}{{ config.SITE_NAME }}{% endblock -%}
+{%- block content %}
+    {%- if current_user.is_authenticated %}
+        {%- set is_auth = True -%}
+    {%- else -%}
+        {%- set is_auth = False -%}
+    {% endif -%}
+    {%- if current_user.is_admin %}
+        {%- set im_admin = True -%}
+    {%- else -%}
+        {%- set im_admin = False -%}
+    {% endif -%}
+    <div class="container">
+        <div class="col-md-9">
+            <div class="panel panel-default media">
+            <div class="panel-heading">
+                <div class="media-body">
+                <h3 class="topic-title media-heading"><strong>{{ topic.title }}</strong></h3>
+                <div class="text-muted">
+                <span>
+                    <a class="a-grey" href="{{ url_for('topic.index', node=topic.node_id) }}">{{ topic.node_id|nname }}</a>
+                </span>
+                {{ ''|addlt }}
+                <span>
+                    <a class="a-grey" href="{{ url_for('user.view_user', username=topic.author.username) }}">{{ topic.author.username }}</a>
+                </span>
+                {{ ''|addlt }}
+                <span class="format-time">{{ topic.create_time }}</span><span>{{ '发布'|addlt }}</span>
+                <span>{{ topic|cachecount('click') }} 次阅读</span>
+                {%- if topic.is_pin %}
+                    <span>{{ ''|addlt }}</span>
+                    <i class="fa fa-thumb-tack text-danger" aria-hidden="true"> 置顶</i>
+                {% endif -%}
+                </div>
+                </div>
+                <div class="media-right">
+                    <a href="{{ url_for('user.view_user', username=topic.author.username) }}">  {{ render_avatar(topic.author.id, topic.author.avatar_extension, 'md', 48) }}
+                    </a>
+                </div>
+            </div>
+            <div class="panel-body">
+                <article>{{ topic.content_html|safe }}</article>
+                {%- if topic.content_edit_time > topic.create_time %}
+                    <div class="text-muted">
+                        <span>最后由 <a class="title-a" href="{{ url_for('user.view_user', username=topic.content_editor.username) }}">{{ topic.content_editor.username }}</a> 编辑于 <span class="format-time">{{ topic.content_edit_time }}</span></span>
+                    </div>
+                {% endif -%}
+                {%- if topic.is_elite %}
+                    <div class="elite-ribbon">
+                        <i class="fa fa-star-o" aria-hidden="true"> 精华帖！</i>
+                    </div>
+                {% endif -%}
+            </div>
+            <div class="panel-footer">
+                <div class="pull-left">
+                {% if editable -%}
+                <span>
+                    <a href="{{ url_for('topic.edit_topic', tid=topic.id) }}">编辑</a>
+                </span>
+                {%- endif %}
+                {% if im_admin %}
+                    {{ elite_pin_edit('elite', '精华') }}
+                    {{ elite_pin_edit('pin', '置顶') }}
+                    {%- if not topic.is_delete %}
+                        <a href="#delete" class="delete-topic-a text-danger" tid="{{ topic.id }}" data-toggle="modal" data-target="#delete-modal">删除</a>
+                    {%- else -%}
+                        <span class="label label-warning">已被 {{ topic.delete_by.username }} 删除</span>
+                    {% endif -%}
+                {%- endif %}
+                </div>
+                <div class="pull-right">
+                {{ render_bookmark_follow_btn(is_auth, topic.id, 'topic:follow', 'follow', 'fa-eye', '关注', 'follow', 'topic') }}
+                {{ render_bookmark_follow_btn(is_auth, topic.id, 'topic:bookmark', 'bookmark', 'fa-bookmark', '收藏', 'bookmark', 'topic') }}
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div id="delete-modal" class="modal fade" role="dialog">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <p class="modal-title">请确认</p>
+                  </div>
+                  <div class="modal-body">
+                        <p>删除后不可恢复</p>
+                  </div>
+                  <div class="modal-footer">
+                       <button type="button" class="btn btn-success" data-dismiss="modal">取消</button>
+                       <button type="button" class="confirm-btn btn btn-danger" rid="" data-dismiss="modal">删除</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {%-if im_admin %}
+                <div id="elite-pin-modal" class="modal fade" role="dialog">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <p class="modal-title">精华/置顶</p>
+                      </div>
+                      <div class="modal-body">
+                            <p>切换状态</p>
+                      </div>
+                      <div class="modal-footer">
+                           <button type="button" class="btn btn-success" data-dismiss="modal">取消</button>
+                           <button type="button" class="elite-pin-btn btn btn-danger" rid="" data-dismiss="modal">操作</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+            {% endif -%}
+
+        {%- if not counts['reply']|int %}
+            <div class="no-reply">还没有回复～～</div>
+        {%- else -%}
+            <div class="panel panel-default">
+                <div class="panel-heading">共收到 {{ counts['reply'] }} 条回复</div>
+                <div class="replys panel-body">
+                {% for r in topic.replies.all() -%}
+                    {%- if r.is_delete and not im_admin %}
+                        <div class="reply deleted-floor text-muted">{{ r.current_floor }} 楼已删除</div>
+                    {%- elif r.user_id in asso_ids['user:block'] -%}
+                        <div class="reply deleted-floor text-muted">你屏蔽了本楼作者</div>
+                    {%- else -%}
+                        {%- set author_name = r.author.username -%}
+                        {%- set author_url = url_for('user.view_user', username=author_name) -%}
+                        <div class="reply reply-flex">
+                            <div class="reply-avatar">
+                                <a href="{{ author_url }}">{{ render_avatar(r.author.id, r.author.avatar_extension, 'md', 48) }}</a>
+                            </div>
+                            <div class="reply-body">
+                            <div class="reply-info">
+                            <span class="reply-author text-info"><strong><a href="{{ author_url }}">{{ author_name }}</a></strong></span>
+                            <span>{{ ''|addlt }}</span>
+                                <a class="reply-floor text-success nounderline" {%- if loop.last %} id="last-reply" {% endif -%} name="{{ 'reply' + r.current_floor|string }}" href="#{{ 'reply' + r.current_floor|string }}">#{{ r.current_floor }}</a>
+                                <span>{{ ''|addlt }}</span>
+                                <span class="reply-date text-muted format-time">{{ r.create_time }}</span>
+                            {%- if (current_user.id == r.author.id or im_admin) and not r.is_delete %}
+                                <a href="#delete" class="delete-reply-a text-danger" rid="{{ r.id }}" data-toggle="modal" data-target="#delete-modal">删除</a>
+                            {%- elif r.is_delete and im_admin %}
+                                <span class="label label-info">已被 {{ r.delete_by.username }} 删除</span>
+                            {% endif -%}
+                            <span class="pull-right">
+                                <a class="fa fa-reply reply-btn text-muted nounderline" href="#no" title="回复此楼"></a>
+                                {{ render_reply_upvote(is_auth, r) }}
+                            </span>
+                            </div>
+                            <div class="reply-content-text">{{ r.content_html|safe }}</div>
+                            </div>
+                        </div>
+                        {%- endif %}
+                {%- endfor %}
+                </div>
+            </div>
+        {% endif -%}
+        </div>
+        
+        <div class="col-md-9">
+            <div class="panel panel-default">
+                <div class="panel-heading">回帖</div>
+                <div class="panel-body">
+                {%- if current_user.is_authenticated %}
+                    {%- if current_user|canpost('reply') %}
+                        <form role="form" method="POST" action="{{ url_for('topic.add_reply', topic_id=topic.id) }}">
+                            {{ form.hidden_tag() }}
+                            {{ add_form_div('content', rows='5',cols='20', style="min-width: 100%; max-width: 100%;", form_class='reply-text') }}
+                            <button type="submit" class="btn btn-md btn-primary">提交</button>
+                        </form>
+                    {% elif not current_user.email_confirmed -%}
+                        {{ render_forbid_reason('你还未确认Email') }}
+                    {% elif current_user.is_ban_post -%}
+                        {{ render_forbid_reason('你已被禁言') }}
+                    {% else -%}
+                        {{ render_forbid_reason('你已达到灌水限制') }}
+                    {% endif -%}
+                {%- else -%}
+                    <span>需要  <a href="{{ url_for('account.sign_in', next=request.path) }}" class="btn btn-primary">登录</a>  后才可参与讨论</span>
+                {% endif -%}
+                </div>
+            </div>
+        </div>
+
+        <div class="topic-sidebar col-md-3" data-spy="affix" data-offset-top="10">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <a href="#totop" class="btn btn-default to-top"><i class="fa fa-arrow-up" aria-hidden="true"></i></a>
+                    <div class="topic-upvote">
+                        {{ render_topic_upvote(is_auth, topic) }}
+                    </div>
+                    <a href="#newreply" class="btn btn-success add-reply">发表回复</a>
+                    <a href="#tobottom" class="btn btn-default to-bottom"><i class="fa fa-arrow-down" aria-hidden="true"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ ajax_csrf_setup() }}
+        <script>
+            $(document).on("click", ".ajax-a", function() {
+                var baseUrl = '{{ url_for('api.index') }}';
+                var btn = this;
+                var action = $(btn).attr("post-action");
+                var type = $(btn).attr("post-type");
+                var fullUrl = baseUrl + action
+                $.ajax({
+                url: fullUrl,
+                data: {"type": type, "id":$(btn).attr("post-id")},
+                type: 'POST',
+                success: function(response) {
+                        var cancel = response['cancel'];
+                        var current = response['current'];
+                        var span = $(btn).children("span");
+                        var currentTitle = $(btn).attr("title");
+                        var emptyTitle = currentTitle.replace("取消", "");
+                        if (cancel == 1) {
+                            $(btn).removeClass("hover-muted").addClass("hover-danger");
+                            $(btn).attr("title", emptyTitle)
+                            if (current > 0) {
+                                $(span).text(current + " 个" + emptyTitle);
+                            } else {
+                                if (type == 'reply') {
+                                    $(span).text("");
+                                } else {
+                                    $(span).text(emptyTitle);
+                                }
+                            }
+                        } else {
+                            $(btn).removeClass("hover-danger").addClass("hover-muted");
+                            $(btn).attr("title", "取消" + emptyTitle);
+                            $(span).text(current + " 个" + emptyTitle);
+                        }
+                },
+                error: function() {
+                    console.log('ajax fail');
+                }
+            });
+            });
+
+            {%- if current_user.is_admin %}
+
+                $(document).on('click', '.elite-pin-a', function() {
+                    tid = $(this).attr('tid');
+                    action = $(this).attr('post-action');
+                    console.log(tid);
+                    console.log(action);
+                    $('#elite-pin-modal .elite-pin-btn').attr('tid', tid).attr('post-action', action);
+                });
+
+                $(document).on('click', '.elite-pin-btn', function() {
+                var url = '{{ url_for('api.elite_pin') }}';
+                var btn = this;
+                $.post(
+                       url,
+                       {"action": $(btn).attr("post-action"), "tid":$(btn).attr("tid")},
+                       function() {
+                        location.reload();
+                    });
+                });
+
+                $(document).on('click', '.delete-topic-a', function() {
+                    tid = $(this).attr('tid');
+                    console.log(tid);
+                    $('#delete-modal .confirm-btn').attr('tid', tid);
+                    $('#delete-modal .confirm-btn').addClass('delete-topic-btn');
+                });
+
+                $(document).on('click', '.delete-topic-btn', function() {
+                    tid = $(this).attr('tid');
+                    $.post('{{ url_for('api.delete_post') }}',
+                           {'type': 'topic', 'id': tid},
+                           function() {
+                            location.reload();
+                    });
+                });
+
+            {% endif -%}
+
+            $(document).on("click", ".reply-btn", function() {
+                var btn = this;
+                var floor = $(btn).parent().siblings(".reply-floor").text() + "楼";
+                var atUser = "@" + $(btn).parent().siblings(".reply-author").text()
+                $('#');
+                var newReply = $(".reply-text");
+                var fullText = floor + " " + atUser + "\n";
+                $(newReply).val($(newReply).val() + fullText);
+                $('html, body').animate({ scrollTop: $(newReply).offset().top }, 300);
+                $(newReply).focus();
+            });
+
+            $(document).on("click", ".to-top", function() {
+                $('html, body').animate({ scrollTop: $('html, body').offset().top }, 300);
+            });
+
+            $(document).on("click", ".add-reply", function() {
+                var newReply = $(".reply-text");
+                $('html, body').animate({ scrollTop: $(document).height() }, 300);
+                $(newReply).focus();
+            });
+
+            $(document).on("click", ".to-bottom", function() {
+                $('html, body').animate({ scrollTop: $(document).height() }, 300);
+            });
+
+            $(document).on('click', '.delete-reply-a', function() {
+                rid = $(this).attr('rid');
+                $('#delete-modal .confirm-btn').attr('rid', rid);
+                $('#delete-modal .confirm-btn').addClass('delete-reply-btn');
+            });
+
+            $(document).on('click', '.delete-reply-btn', function() {
+                rid = $(this).attr('rid');
+                $.post('{{ url_for('api.delete_post') }}',
+                       {'type': 'reply', 'id': rid},
+                       function() {
+                        location.reload();
+                });
+            });
+
+            $(document).ready(function() {
+                $('a[href^="#reply"]').not(".reply-floor").addClass("text-success");
+                var needFormat = $('.format-time');
+                $.each(needFormat, function(index, value) {
+                    var time = $(value).text();
+                    $(value).text(moment(time).fromNow());
+                });
+            });
+
+            $('.reply-text').atwho({
+              at: "@",
+              data: "{{ url_for('api.user_json', _external=True) }}",
+              limit: 5,
+            });
+        </script>
+    </div>
+{% endblock -%}

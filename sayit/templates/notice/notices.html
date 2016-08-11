@@ -1,0 +1,100 @@
+{%- extends "base.html" %}
+{%- from "common_macros/load_style_script.html" import moment_js %}
+{%- from "common_macros/macro.html"  import render_pagination,
+                                        render_flash_msg, render_avatar %}
+{%- block more_script %}
+    {{ moment_js() }}
+{% endblock -%}
+
+{%- macro render_user(user) %}
+    {{ render_avatar(user.id, user.avatar_extension, 'md', 24) }}
+    <a href="{{ url_for('user.view_user', username=user.username) }}">{{ user.username }}</a>
+{% endmacro -%}
+
+{%- macro render_topic_link(row, notice_type) %}
+    {%- set url = url_for('topic.single_topic', topic_id=row.topic.id) %}
+    {%- if 'reply' in notice_type %}
+        {%- set url = url + '#reply' + row.reply.current_floor|string %}
+    {% endif -%}
+    <a class="mention-link" href="{{ url }}">{{ row.topic.title }}</a>
+{% endmacro -%}
+
+{%- macro render_time(time) %}
+    <span class="format-time text-muted">{{ time }}</span>
+{% endmacro -%}
+
+{%- block title %}{{ '通知'|addlt }}{{ super() }}{% endblock -%}
+{%- block content %}
+<div class="container">
+    <div class="col-md-8 col-md-offset-2">
+        <div class="panel panel-default">
+            <div class="panel-heading clearfix">
+                <span>所有通知</span>
+            </div>
+            {%- if notices %}
+                <div class="list-group">
+                    {%- for n in notices %}
+                        {%- set type = n.notice_type -%}
+                        <div class="notice list-group-item">
+                        {{ render_user(n.sender) }} 
+                        {%- if type == 'mention' %}
+                            <span>的回复提到了你</span> 
+                        {%- elif type == 'new_reply' %}
+                            <span>回复了你的主题</span> 
+                        {%- elif type == 'upvote_reply' %}
+                            <span>赞了你的回复</span>
+                        {%- elif type == 'follow_new_reply' or type == 'follow_topic_reply' %}
+                            <span>回复了主题</span> 
+                        {%- elif type == 'follow_upvote_reply' %}
+                            <span>赞了回复</span> 
+                        {%- elif type == 'follow_topic' %}
+                            <span>关注了你的主题</span> 
+                        {%- elif type == 'bookmark_topic' %}
+                            <span>收藏了你的主题</span> 
+                        {%- elif type == 'upvote_topic' %}
+                            <span>赞了你的主题</span> 
+                        {%- elif type == 'follow_upvote_topic' %}
+                            <span>赞了主题</span> 
+                        {%- elif type == 'follow_follow_topic' %}
+                            <span>关注了主题</span> 
+                        {%- elif type == 'follow_bookmark_topic' %}
+                            <span>收藏了主题</span> 
+                        {%- elif type == 'follow_new_topic' %}
+                            <span>发表了主题</span> 
+                        {%- elif type == 'follow_user' %}
+                            <span>关注了你</span> 
+                        {%- elif type == 'follow_follow_user' %}
+                            <span>关注了</span> 
+                            {{ render_user(n.user) }} 
+                        {% endif -%}
+                        {%- if 'mention' in type or 'topic' in type or 'reply' in type %}
+                            {{ render_topic_link(n, type) }}
+                        {% endif -%}
+                        {{ render_time(n.create_time) }}
+                        </div>
+                    {%- endfor -%}
+                </div>
+            {%- else -%}
+                <div class="panel-body">
+                    <p>没有纪录</p>
+                </div>
+            {%- endif %}
+            <div class="panel-footer clearfix">
+                {%- if paginate.pages > 1 %}
+                    {{ render_pagination(paginate) }}
+                {% endif -%}
+            </div>
+
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() {
+            var needFormat = $('.format-time');
+            $.each(needFormat, function(index, value) {
+                var time = $(value).text();
+                $(value).text(moment(time).fromNow());
+            });
+        });
+    </script>
+</div>
+{%- endblock -%}

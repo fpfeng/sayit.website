@@ -1,0 +1,28 @@
+{%- from "common_macros/macro.html" import render_flash_msg, add_form_div with context %}
+{%- extends "base.html" %}
+{%- block title %}登录 - {{ config.SITE_NAME }}{% endblock -%}
+{%- block content %}
+    <div class="container col-md-4 col-md-offset-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">帐号登录</div>
+            <div class="panel-body">
+                {{ render_flash_msg() }}
+                <form role="form" method="POST" action="{{ url_for('account.sign_in', next=request.args.get('next')) }}">
+                        {{ form.hidden_tag() }}
+                        {{ add_form_div('username') }}
+                        {{ add_form_div('password') }}
+                        <div class="checkbox">
+                            <label for="remember_me" class="checkbox">
+                                {{ form.remember_me(value=1, checked=checked, id="remember_me")}}{{ form.remember_me.label.text }}
+                            </label>
+                        </div>
+                        <div>
+                        <button type="submit" class="btn btn-md btn-primary">提交</button>
+                        <a href="{{ url_for('account.recover') }}" class="btn btn-md btn-danger pull-right">忘记密码?</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock -%}

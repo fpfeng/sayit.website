@@ -1,0 +1,180 @@
+{%- macro filter_flash_msg(filter_type=none) %}
+    {%- if filter_type %}
+        {% with msg = get_flashed_messages(category_filter=[filter_type]) -%}
+            {%- if msg %}
+            <div class="alert alert-{{ filter_type }}">
+              <button type="button" class="close" data-dismiss="alert">&times;</button>
+              <ul>
+                {%- for m in msg %}
+                <li>{{ m }}</li>
+                {% endfor -%}
+              </ul>
+            </div>
+            {% endif -%}
+        {%- endwith %}
+    {% endif -%}
+{% endmacro -%}
+
+{%- macro render_flash_msg() %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+            <ul style="list-style-type: none; padding: 0; margin: 0;">
+                <li>
+                <div class="alert alert-{{ category }}">
+                    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                    <strong>{{ message }}</strong>
+                </li>
+            </ul>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+{% endmacro -%}
+
+{%- macro render_notice_icon() %}
+    {%- set count = current_user|ucount|int -%}
+    {% if count > 0 %}
+        <li><a href="{{ url_for('notice.index') }}"><span class="glyphicon glyphicon-bell"></span><span class="notice-dot">&#8226;</span></a></li>
+    {%- else -%}
+        <li><a href="{{ url_for('notice.index') }}"><span class="glyphicon glyphicon-bell"></span></a></li>
+    {% endif -%}
+{% endmacro -%}
+
+{%- macro add_form_div(form_name, div_class=none, form_class=none, alter_form=none) %}
+    {%- if alter_form %}
+        {%- set form = alter_form -%}
+    {% endif -%}
+    <div class="form-group {{ div_class if div_class }}{% if form[form_name].errors %} has-error {% endif %}">
+        {%- set add_form_class = 'form-control ' + form_class if form_class else 'form-control' -%}
+        {{ form[form_name](class=add_form_class, placeholder=form[form_name].label.text, **kwargs) }}
+        <p class="help-block">{{ form[form_name].errors[0] }}</p>
+    </div>
+{% endmacro -%}
+
+{%- macro render_switch_icon_label(is_auth, int_id, key, label_key, icon_name, chs_label, post_action, post_type) %}
+        {%- set color_class = 'hover-danger' -%}
+        {%- set title = chs_label -%}
+        {%- set ajax_class = 'no' -%}
+        {%- if is_auth %}
+            {%- set ajax_class = 'ajax-a' -%}
+            {%- if int_id in asso_ids[key] %}
+                {%- set color_class = 'hover-muted' -%}
+                {%- set title = '取消' + chs_label -%}
+            {%- endif %}
+        {%- endif -%}
+        {%- set label_number = counts[label_key] -%}
+        {%- if label_number|int > 0 -%}
+            {%- set label_text = label_number + ' 个' + chs_label -%}
+        {%- else -%}
+            {%- set label_text = chs_label -%}
+        {% endif -%}
+        <a class="{{ ajax_class }} {{ color_class }} nounderline" title="{{ title }}" post-type="{{ post_type }}" post-action="{{ post_action }}" post-id="{{ int_id }}" href="#dontscroll"><i class="fa nounderline {{ icon_name }}"></i><span class="nounderline" value="{{ label_number }}">{{ label_text }}</span></a>
+{% endmacro -%}
+
+{%- macro render_reply_upvote(is_auth, reply) %}
+    {%- set rid = reply.id -%}
+    {%- set color_class = 'hover-danger' -%}
+    {%- set title = '赞' -%}
+    {%- set ajax_class = 'no' -%}
+    {%- if is_auth %}
+        {%- set ajax_class = 'ajax-a' -%}
+        {%- if rid in asso_ids['reply:upvote'] %}
+            {%- set color_class = 'hover-muted' -%}
+            {%- set title = '取消赞' -%}
+        {%- endif -%}
+    {%- endif -%}
+        {%- set label_number = reply|rupvo -%}
+        {%- if label_number|int > 0 -%}
+            {%- set label_text = label_number + ' 个赞' -%}
+        {%- else -%}
+            {%- set label_text = '' -%}
+        {% endif -%}
+        <a class="{{ ajax_class }} {{ color_class }} nounderline" title="{{ title }}" post-type="reply" post-action="upvote" post-id="{{ rid }}" href="#dontscroll"><i class="fa fa fa-thumbs-o-up nounderline"></i><span class="nounderline" value="{{ label_number }}">{{ label_text }}</span></a>
+{% endmacro -%}
+
+{%- macro render_topic_upvote(is_auth, topic) %}
+    {%- set tid = topic.id -%}
+    {%- set color_class = 'hover-danger' -%}
+    {%- set title = '赞' -%}
+    {%- set ajax_class = 'no' -%}
+    {%- if is_auth %}
+        {%- set ajax_class = 'ajax-a' -%}
+        {%- if tid in asso_ids['topic:upvote'] %}
+            {%- set color_class = 'hover-muted' -%}
+            {%- set title = '取消赞' -%}
+        {%- endif -%}
+    {%- endif -%}
+        {%- set upvote = counts['upvote'] -%}
+        {%- if upvote|int > 0 -%}
+            {%- set text = upvote + ' 个赞' -%}
+        {% else -%}
+            {%- set text = '赞' -%}
+        {% endif -%}
+        <a class="{{ ajax_class }} {{ color_class }} nounderline" title="{{ title }}" post-type="topic" post-action="upvote" post-id="{{ tid }}" href="#dontscroll"><i class="fa fa-thumbs-o-up fa-4x nounderline topic-upvote-btn"></i><br><span>{{ text }}</span></a><br>
+        
+{% endmacro -%}
+
+{%- macro render_btn_div(key, action, btn_short, text) %}
+    {%- set uid = user.id -%}
+    {%- set btn = 'btn-' + btn_short -%}
+    {%- if uid in asso_ids[key] -%}
+        {%- set active = 'active' -%}
+        {%- set text = '取消' + text -%}
+    {%- else -%}
+        {%- set active = '' -%}
+    {% endif -%}
+    <div class="col-sm-6">
+        <a href="#dontscroll" post-action="{{ action }}" post-type="user" post-id="{{ uid }}" class="btn {{ btn }} btn-block ajax-a {{ active }}"><span>{{ text }}</span></a>
+    </div>
+{% endmacro -%}
+
+{%- macro render_avatar(uid, extension, size, int_size) %}
+    {%- if extension != '0' %}
+        <img class="img-avatar img-circle" src="{{ config.QINIU_BASE_URL}}{{ 'avatar/' + uid|string }}.{{ extension }}-{{ size }}" height="{{ int_size }}" width="{{ int_size }}">
+    {%- else -%}
+        <img class="img-avatar img-circle" src="{{ config.QINIU_BASE_URL}}default.png-{{ size }}" height="{{ int_size }}" width="{{ int_size }}">
+    {%- endif -%}
+{% endmacro -%}
+
+{%- macro _arg_url_for(endpoint, base) -%}
+    {# calls url_for() with a given endpoint and **base as the parameters,
+    additionally passing on all keyword_arguments (may overwrite existing ones)
+    #}
+    {%- with kargs = base.copy(),
+        _ = kargs.update(kwargs) -%}
+        {{ url_for(endpoint, **kargs) }}
+    {%- endwith %}
+{%- endmacro -%}
+
+{%- macro render_pagination(pagination) %}
+    {%- with url_args = {},
+            _ = url_args.update(request.view_args if not endpoint else {}),
+            __ = url_args.update(request.args if not endpoint else {}),
+            ___ = url_args.update(args) %}
+    {%- with endpoint = endpoint or request.endpoint %}
+
+    <ul class="pagination pagination-sm pager-footer">
+    {%- if pagination.has_prev %}
+        <li><a href="{{_arg_url_for(endpoint, url_args, page=pagination.prev_num) }}">&laquo;</a></li>
+    {%- else -%}
+        <li class="disabled"><a href="#">&laquo;</a></li>
+    {% endif -%}
+    {% for p in pagination.iter_pages(left_edge=2, left_current=5, right_current=5, right_edge=2) -%}
+        {%- if p %}
+            {% if p == pagination.page -%}
+            <li class="active"><a href="#">{{ p }}</a></li>
+            {%- else -%}
+                <li><a href="{{ _arg_url_for(endpoint, url_args, page=p) }}">{{ p }}</a></li>
+            {%- endif -%}
+        {% endif -%}
+    {%- endfor -%}
+            
+    {%- if pagination.has_next %}
+        <li><a href="{{_arg_url_for(endpoint, url_args, page=pagination.next_num) }}">&raquo;</a></li>
+    {%- else -%}
+        <li class="disabled"><a href="#">&raquo;</a></li>
+    {% endif -%}
+    </ul>
+    {%- endwith %}
+    {%- endwith %}
+{% endmacro -%}

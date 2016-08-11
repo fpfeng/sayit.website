@@ -1,0 +1,437 @@
+body { 
+    padding-top: 70px; 
+}
+
+pre {
+    border: none;
+}
+
+.node-form, .title-form {
+  margin-bottom: 5px;
+}
+
+.title-form {
+  padding-left: 0;
+}
+
+.list-inline {
+    padding-left: 0;
+    margin-left: -5px;
+    list-style: none;
+}
+
+
+.grey-li > a {
+    color: grey;
+}
+
+.red-li > a {
+    color: #ff0039;
+}
+
+
+
+.margin-bottom-zero {
+    margin-bottom: 0;
+}
+
+.topic-content {
+    max-width: 100%;
+    min-width: 100%;
+}
+
+
+.fa {
+    padding-left: 2px;
+    padding-right: 2px;
+}
+
+.nounderline:hover, .nounderline:focus {
+    text-decoration: none;
+}
+
+.hover-danger:hover, .hover-muted  {
+    color: #a94442;
+}
+
+.hover-muted:hover, .hover-danger {
+    color: #777;
+}
+
+.hover-muted:focus {
+    color: #a94442;
+}
+
+.hover-danger:focus {
+    color: #777;
+}
+
+.notice-dot {
+    font-size: 24pt;
+    color: red;
+    position: absolute;
+    right: 10px;
+    top: 6px;
+}
+
+.notice {
+    text-align: left;
+    padding-left: 60px;
+}
+
+
+.notice > img {
+    margin-right: 5px;
+}
+
+.user-counter, .user-btns {
+    text-align: center;
+    border-top: 1px solid #f2f2f2;
+}
+
+.user-counter {
+    margin-top: 15px;
+}
+
+.user-counter > div > p {
+    margin-bottom: 0;
+}
+
+.user-counter > div > a {
+    text-decoration: none;
+}
+
+.user-counter > div {
+    box-shadow: 13px 7px 1px -12px #f2f2f2;
+}
+
+.user-counter > div:last-child {
+    box-shadow: none;
+}
+
+.user-btns {
+    margin-top: 10px;
+    padding-top: 15px;
+}
+
+.user-counter {
+    font-size: 29pt;
+}
+
+.counter-desc {
+    margin-top: -10px;
+    font-size: 11pt;
+    color: #777;
+}
+
+.counter-number:after {
+    font-size: 12pt;
+    color: #777;
+    display: block;
+    content: "跟追";
+}
+
+.replys {
+    padding: 0;
+}
+
+.reply {
+    padding: 10px 15px;
+    border-bottom: 1px solid #f2f2f2;
+}
+
+.reply:last-child {
+    border-bottom: none;
+}
+
+.reply-flex {
+    position: relative;
+    display: flex;
+
+}
+
+
+.reply-body {
+    position: relative;
+    left: 15px;
+    width: 91%;
+}
+
+.reply-content-text {
+    margin-top: 3px;
+}
+
+.reply-text {
+    padding-top: 5px;
+}
+
+.reply-btn {
+    padding-right: 5px;
+    display: none;
+}
+
+.reply:hover .reply-btn {
+    display: inline;
+}
+
+.topic-sidebar {
+    position: fixed;
+   left: 72%;
+   top: 70px;
+}
+
+.topic-sidebar > .panel > .panel-body > .btn {
+    display: block;
+    width: 100%;
+}
+
+.topic-upvote {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.topic-upvote > a {
+    display: block;
+}
+
+.add-reply {
+    margin-bottom: 15px;
+}
+
+.reply-count {
+    font-size: 13pt;
+    color: purple;
+}
+
+.click-count {
+    font-size: 11pt;
+}
+
+.topic-item {
+    padding: 7px 15px;
+    border: 1px solid #f2f2f2;
+}
+
+.topic-item:hover, .hot-topic:hover {
+    background-color: #f5f5f5;
+}
+
+.single-topic-wrap {
+    position: relative;
+    margin-top: 9px;
+    padding: 0 0 0 10px;
+    left: 30px;
+    display: table;
+    width: 90%;
+}
+
+.single-topic-title {
+    width: 73%;
+}
+
+.title-span-wrap > a {
+    display: inline-block;
+    max-width: 400px;
+    white-space: nowrap;
+    vertical-align: text-top;
+    overflow:hidden !important;
+    text-overflow: ellipsis;
+}
+
+.single-topic-counter {
+    min-width: 30px;
+    padding-left: 5px;
+}
+
+.single-topic-counter > span {
+    display: inline-block;
+    text-align: center;
+    width: 70px;
+}
+
+.single-topic-status, .single-topic-title, .single-topic-status > div {
+    display: inline-block;
+}
+
+.single-topic-status {
+    width: 27%;
+}
+
+
+.topics-panel {
+    padding: 0;
+}
+
+.topic-avatar {
+    position: relative;
+    left: 10px;
+}
+
+.topic-info {
+    left: 40px;
+    padding-top: 8px;
+    width: 70%;
+    margin: 0;
+}
+
+.last-reply > * {
+    vertical-align: middle;
+}
+
+.last-reply > a {
+    margin-right: 5px;
+}
+
+.node-parent {
+    padding-right: 40px;
+    text-align: right;
+    min-width: 100px;
+}
+
+.node-child {
+    display: inline-block;
+    width: 100px;
+}
+
+.pager-footer {
+    margin: 0;
+}
+
+.current-sift {
+    color: orange;
+    border-bottom: 1px dotted;
+}
+
+.deleted-floor {
+    text-align: center;
+    text-decoration: line-through;
+}
+
+.follow-user {
+    margin-bottom: 15px;
+}
+
+.user-list-reply:last-child {
+    margin-bottom: 0px;
+    border-bottom: none;
+}
+
+.user-list-reply {
+    border-bottom: 1px solid #f2f2f2;
+    margin-bottom: 15px;
+}
+
+.user-list-reply-text {
+    margin: 3px 0 5px 0;
+}
+
+.user-page-panel {
+    /*border-top: none;*/
+}
+
+.user-page-nav {
+    /*padding: 0 3px;*/
+    border-bottom: none;
+}
+
+.user-page-nav li:first-child {
+    margin-left: 20px;
+}
+
+.nav-right-fix {
+    margin-right: 80px;
+}
+
+.label-grey {
+    background-color: #DCDCDC;
+    color: #666;
+}
+
+.a-grey, .a-grey:hover {
+    color: #999999;
+}
+
+.elite-ribbon {
+    background: #fffce9;
+    border-top: 1px solid #f0e0cf;
+    border-bottom: 1px solid #f0e0cf;
+    margin: 10px -30px -5px -30px;
+    padding: 4px 30px;
+    color: #da974d;
+    font-size: 14px;
+}
+
+.title-a {
+    color: #555;
+}
+
+.title-a:hover {
+    color: #999;
+}
+
+.no-reply {
+    color: #666;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.user-links > a {
+    margin-right: 10px;
+}
+
+#node-modal .panel {
+    border: none;
+    -webkit-box-shadow: none;
+}
+
+#node-modal .panel-heading {
+    display: none;
+}
+
+#node-modal .panel-body {
+    padding: 0;
+}
+
+#node-modal .node-child {
+    width: 80px;
+} 
+
+.mention-link {
+    max-width: 50%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.img-avatar {
+    border: 1px solid #ddd;
+    border-radius: 50%;
+}
+
+.hot-topic > a {
+    max-width: 180px;
+}
+
+.topic-link {
+    max-width: 380px;
+}
+
+.hot-topic > a, .topic-link {
+    display: inline-block;
+    white-space: nowrap;
+    vertical-align: text-top;
+    overflow: hidden !important;
+    text-overflow: ellipsis;
+}
+
+.center-align {
+    text-align: center;
+}
+
+.hot-topic > img {
+    margin-right: 5px;
+    display: inline-block;
+    vertical-align: bottom;
+}

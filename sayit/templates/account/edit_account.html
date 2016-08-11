@@ -1,0 +1,115 @@
+{%- extends "base.html" %}
+{%- from "common_macros/load_style_script.html" import ajax_csrf_setup %}
+{%- from "common_macros/macro.html" import render_flash_msg, render_avatar,
+                                        add_form_div with context %}
+{%- block title %}{{ '个人设置'|addlt }}{{ config.SITE_NAME }}{% endblock -%}
+{%- block content %}
+<div class="container">
+    <div class="col-md-9">
+        {{ render_flash_msg() }}
+        <div id="resend-modal" class="modal fade" role="dialog">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <p class="modal-title">确认地址</p>
+                  </div>
+                  <div class="modal-body">
+                        <input class="form-control email-address" type="" name="email-address">
+                  </div>
+                  <div class="modal-footer">
+                       <button type="button" class="btn btn-success" data-dismiss="modal">取消</button>
+                       <button type="button" class="send-btn btn btn-danger" rid="" data-dismiss="modal">发送</button>
+                  </div>
+                </div>
+              </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">更改资料</div>
+            <div class="panel-body">
+            <form role="form" method="POST" action="{{ url_for('account.edit', type='profile') }}" accept="image/gif, image/jpeg" enctype="multipart/form-data">
+                {{ profile.hidden_tag() }}
+                <label>头像</label>
+                {{ add_form_div('avatar', alter_form=profile) }}
+                <label>Email</label>
+                {%- if current_user.email_confirmed %}
+                    {{ add_form_div('email', title='验证了就不能改啦', disabled=disabled, alter_form=profile, readonly=true) }}
+                {%- else -%}
+                    <div class="input-group">
+                        {{ profile.email(class='form-control') }}
+                        <span data-toggle="modal" data-target="#resend-modal" class="input-group-addon btn btn-primary resend-modal-btn">更改/重发验证邮件</span>
+                    </div>
+                {% endif -%}
+                <div class="checkbox">
+                    <label for="email_private" class="checkbox">
+                        {{ profile.email_private()}}{{ profile.email_private.label.text }}
+                    </label>
+                </div>
+                <label>所在城市</label>
+                {{ add_form_div('city', alter_form=profile) }}
+                <label>公司</label>
+                {{ add_form_div('company', alter_form=profile) }}
+                <label>个人网站</label>
+                {{ add_form_div('website', alter_form=profile) }}
+                <label>GitHub</label>
+            <div class="input-group {% if profile.github.errors %} has-error {% endif %}">
+            <span class="input-group-addon">https://github.com/</span>
+            {{ profile.github(class='form-control', placeholder=profile.github.label.text ) }}
+            </div>
+            <p class="text-danger help-block">{{ profile.github.errors[0] }}</p>
+            <button type="submit" class="btn btn-md btn-primary">确认</button>
+            </form>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">更改密码</div>
+            <div class="panel-body">
+            <form role="form" method="POST" action="{{ url_for('account.edit', type='password') }}">
+                {{ passwd.hidden_tag() }}
+                {{ add_form_div('current', alter_form=passwd) }}
+                {{ add_form_div('password', alter_form=passwd) }}
+                {{ add_form_div('confirm_password', alter_form=passwd) }}
+                <button type="submit" class="btn btn-md btn-danger">确认</button>
+            </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="panel panel-default">
+            <div class="panel-heading">更改头像后请等待上传到CDN</div>
+            <div class="panel-body">
+                {{ render_avatar(current_user.id, current_user.avatar_extension, 'lg', 96) }}
+            </div>
+        </div>
+    </div>
+    {{ ajax_csrf_setup() }}
+    <script>
+        $(document).on('click', '.resend-modal-btn', function() {
+            $('#resend-modal .email-address').val($(this).siblings('input').val());
+        });
+
+        $(document).on('click', '.send-btn', function() {
+            var span = $('.resend-modal-btn');
+            $.ajax({
+                url: '{{ url_for('api.edit_email') }}',
+                data: {'address': $('#resend-modal .email-address').val()},
+                type: 'POST',
+                success: function(response) {
+                    console.log(response);
+                    var status = response['status'];
+                    if (status == 'send') {
+                        $(span).text('请注意查收邮件');
+                    } else if (status == 'limit') {
+                        $(span).text('大哥停一下吧');
+                    } else if (status == 'exist') {
+                        $(span).text('已存在纪录');
+                    }
+                },
+                error: function() {
+                    $(span).text('邮差似乎罢工了');
+                }
+            });
+        });
+    </script>
+</div>
+{% endblock -%}

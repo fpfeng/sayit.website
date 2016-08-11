@@ -1,0 +1,335 @@
+{%- extends "base.html" %}
+{%- from "common_macros/load_style_script.html" import highlightjs_css,
+                                          fontawesome_css, moment_js,
+                                          highlight_js, ajax_csrf_setup %}
+{%- from "common_macros/macro.html" import render_flash_msg, render_avatar,                                        render_pagination %}
+{%- from "user/macro.html" import render_follow_block_btn, render_follow_block with context %}
+{%- block more_style %}
+    {{ highlightjs_css() }}
+    {{ fontawesome_css() }}
+{% endblock -%}
+{%- block more_script %}
+    {{ moment_js() }}
+    {{ highlight_js() }}
+{% endblock -%}
+{%- block title %}{{ user.username|addlt }}{{ config.SITE_NAME }}{% endblock -%}
+{%- set endpoint = request.endpoint -%}
+{%- set view_args = request.view_args -%}
+{%- set tab = request.args.get('tab') -%}
+
+{%- macro render_follow_user(row, id_attr, relationship_attr) %}
+  <div class="col-xs-3">
+    <div class="media follow-user">
+      <div class="media-left">
+        {{ render_avatar(row[id_attr], row[relationship_attr].avatar_extension, 'lg', 48) }}
+      </div>
+      <div class="media-body">
+        {%- set username = row[relationship_attr].username -%}
+        <div class="media-heading"><strong><a href="{{ url_for('user.view_user', username=username) }}">{{ username }}</a></strong></div>
+        {%- if current_user.is_authenticated %}
+          <div class="follow-user-switch">
+            {%- if row[id_attr] == current_user.id %}
+              <span class="text-success">你</span>
+            {%- else -%}
+              <a href="#followtoggle" uid="{{ row[id_attr] }}" class="ajax-follow nounderline">
+                {%- if row[id_attr] in asso_ids['user:following'] %}
+                  <span class="text-danger">取消关注</span>
+                {%- else -%}
+                  <span class="text-muted">关注</span>
+                {%- endif %}
+              </a>
+              {%- endif %}
+          </div>
+        {% endif -%}
+      </div>
+    </div>
+  </div>
+{% endmacro -%}
+
+{%- macro render_follow(which_side) %}
+      {%- set row_divs = (rows|length / 4)|int -%}
+      {% for i in range(row_divs + 1) -%}
+        <div class="row">
+          {%- set start = i * 4 -%}
+          {% for r in rows[start:start + 4] -%}
+            {% if which_side == 'follower' %}
+              {{ render_follow_user(r, 'uid', 'come_from') }}
+            {%- else -%}
+              {{ render_follow_user(r, 'act_on_uid', 'apply_to') }}
+            {%- endif %}
+          {%- endfor %}
+      </div>
+      {%- endfor %}
+{% endmacro -%}
+
+{%- macro render_tab_rows() %}
+  <div class="panel-body">
+  {%- if not rows|length %}
+    {{ empty_user_body() }}
+  {%- else -%}
+  {%- if tab == 'topic' %}
+      <div class="list-group">
+        {% for t in rows -%}
+        <div class="list-group-item">
+          <span style="float: left; width: 120px;"><a href="{{ url_for('topic.index', node=t.node_id) }}">{{ node_names[t.node_id] }}</a></span> 
+          <span><a class="topic-link" href="{{ url_for('topic.single_topic', topic_id=t.id) }}">{{ t.title }}</a></span> 
+          <span style="font-size: 9pt;" class="format-time text-muted">{{ t.create_time }}</span> 
+          <span title="回复/点击" style="float:right;">{{ t|cachecount('reply') }}/{{ t|cachecount('click') }}</span>
+        </div>
+        {%- endfor %}
+      </div>
+  {%- elif tab == 'reply' %}
+    <div class="user-reply-wrap">
+      {% for r in rows -%}
+      <div class="user-list-reply">
+          <div>
+          <a class="reply-link" style="font-size: 12pt;" class="topic-link" href="{{ url_for('topic.single_topic', topic_id=r.topic.id) }}#reply{{ r.current_floor }}">{{ r.topic.title }}</a>  
+          <span class="text-muted" style="font-size: 9pt;">
+          <span class="format-time">{{ r.create_time }}</span>回复</span>
+          </div>
+          <div class="user-list-reply-text">{{ r.content_html|safe }}</div>
+      </div>
+      {%- endfor %}
+    </div>
+  {%- elif tab == 'bookmark' %}
+    <div class="list-group">
+      {% for r in rows -%}
+      <div class="list-group-item">
+          <span style="float: left; width: 120px;"><a class="topic-link" href="{{ url_for('topic.index', node=r.topic.node_id) }}">{{ node_names[r.topic.node_id] }}</a></span> 
+          <span>
+          <a class="topic-link" href="{{ url_for('topic.single_topic', topic_id=r.tid) }}">{{ r.topic.title }}</a>
+          </span> 
+      </div>
+      {%- endfor %}
+    </div>
+  {%- elif tab == 'following' or tab == 'follower' %}
+      {{ render_follow(tab) }}
+  {%- else -%}
+
+  {%- endif %}
+  {%- endif %}
+  </div>
+{% endmacro -%}
+
+{%- macro empty_user_body() %}
+  <p>没有记录</p>
+{% endmacro -%}
+
+{%- macro render_nav_tab() %}
+  <div class="">
+  <ul class="nav nav-tabs user-page-nav">
+  {{ render_tab('topic', '主题') }}
+  {{ render_tab('reply', '回复') }}
+  {{ render_tab('bookmark', '收藏') }}
+  {{ render_tab('follower', '关注者') }}
+  {{ render_tab('following', '关注了') }}
+  </ul>
+  </div>
+{% endmacro -%}
+
+{%- macro render_tab(name, chs_name) %}
+  <li {% if tab == name -%}{{ 'class=active' }}{%- endif %}><a href="{{ url_for(endpoint, tab=name, **view_args ) }}">{{ chs_name }}</a></li>
+{% endmacro -%}
+
+{%- macro render_github_icon() %}
+  {%- set name = user.github %}
+  {%- if name and name != '0' %}
+    {{ render_fa_icon('https://github.com/' + name, 'fa-github') }}
+  {% endif -%}
+{% endmacro -%}
+
+{%- macro render_website_icon() %}
+  {%- set url = user.website %}
+  {%- if url and url != '0' %}
+      {{ render_fa_icon(url, 'fa-globe') }}
+  {% endif -%}
+{% endmacro -%}
+
+{%- macro render_email_icon() %}
+  {%- set private = user.email_private %}
+  {%- if private == 0 %}
+    {{ render_fa_icon('mailto:' + user.email, 'fa-envelope-o') }}
+  {% endif -%}
+{% endmacro -%}
+
+{%- macro render_fa_icon(url, icon_name) %}
+    <a href="{{ url }}"><i class="text-muted fa {{ icon_name }}"></i></a>
+{% endmacro -%}
+
+{%- block content %}
+  {%- if current_user.is_authenticated %}
+      {%- set is_auth = True -%}
+  {%- else -%}
+      {%- set is_auth = False -%}
+  {% endif -%}
+  <div class="container">
+      <div class="row">
+          <div class="profile col-md-4">
+              <div class="panel panel-default">
+                  <div class="panel-body">
+                      <div class="media">
+                          <div class="media-left">
+                              {{ render_avatar(user.id, user.avatar_extension, 'lg', 92) }}
+                              <div style="text-align: center;">
+                                <span class="label label-info">{{ user.role.name }}</span>
+                              </div>
+                          </div>
+                          <div class="media-body">
+                              <p><span>{{ user.username }}</p>
+                              <p class="text-muted">
+                                <span>第 {{ user.id }} 位会员 / {{ user.sign_up_time.strftime('%Y-%m-%d') }}
+                              </span></p>
+                              <p>来自{{ user.city if user.city and user.city != '0' else '火星' }}</p>
+                              <div class="user-links">
+                                {{ render_github_icon() }}
+                                {{ render_email_icon() }}
+                                {{ render_website_icon() }}
+                              </div>
+                          </div>
+                      </div>
+                      <div class="user-counter row">
+                        <div class="col-sm-3">
+                          <a class="topic-number" href="{{ url_for(endpoint, tab='topic', **view_args) }}">{{ counts['topic'] }}</a>
+                          <p class="counter-desc">主题</p>
+                        </div>
+                         <div class="col-sm-3">
+                          <a class="reply-number" href="{{ url_for(endpoint,tab='reply',  **view_args) }}">{{ counts['reply'] }}</a>
+                          <p class="counter-desc">回复</p>
+                        </div>
+                        <div class="col-sm-3">
+                          <a class="follower-number" href="{{ url_for(endpoint, tab='follower', **view_args) }}">{{ counts['follower'] }}</a>
+                          <p class="counter-desc">关注者</p>
+                        </div>
+                         <div class="col-sm-3">
+                          <a class="follow-number" href="{{ url_for(endpoint, tab='following', **view_args) }}">{{ counts['follow'] }}</a>
+                          <p class="counter-desc">关注了</p>
+                        </div>
+
+                      </div>
+                      {%- if is_auth and current_user.id != user.id %}
+                        <div class="user-btns row">
+                          {# {{ render_follow_block_btn('user:block', 'block', 'danger', '屏蔽') }} #}
+                          {# {{ render_follow_block_btn('user:following', 'follow', 'success', '关注') }} #}
+                          {{ render_follow_block('block') }}
+                          {{ render_follow_block('follow') }}
+                        </div>
+                      {% endif -%}
+                  </div>
+              </div>
+          </div>
+          <div>
+             <div class="col-md-8">
+                    {{ render_nav_tab() }}
+                <div class="panel panel-default user-page-panel">
+                  {%- if tab %}
+                    {{ render_tab_rows() }}
+                  {%- else -%}
+                    <div class="panel-body">
+                      <p>未选择分类标签</p>
+                    </div>
+                    {% endif -%}
+                    <div class="panel-footer clearfix">
+                    {%- if paginate and paginate.pages > 1 %}
+                        {{ render_pagination(paginate) }}
+                    {% endif -%}
+                    </div>
+                  </div>
+                </div>
+                
+            </div>
+          </div> 
+        </div>
+    {{ ajax_csrf_setup() }}
+    <script>
+        {%- if is_auth %}
+            $(document).on("click", ".ajax-a", function() {
+                var baseUrl = '{{ url_for('api.index') }}';
+                var btn = this;
+                var action = $(btn).attr("post-action");
+                var type = $(btn).attr("post-type");
+                var fullUrl = baseUrl + action
+                $.ajax({
+                url: fullUrl,
+                data: {"type": type, "id":$(btn).attr("post-id")},
+                type: 'POST',
+                success: function(response) {
+                        // console.log(response);
+                        var cancel = response['cancel'];
+                        var span = $(btn).children("span");
+                        var text = $(span).text();
+                        if (cancel == 1) {
+                          $(btn).removeClass("active");
+                          $(span).text(function(index, text) {
+                            return text.replace("取消", "");
+                          });
+                        } else {
+                          $(btn).addClass("active");
+                          $(span).text("取消" + text);
+                        } if (action == "follow") {
+                          $(".follower-number").text(response['current']);
+                        }
+                  },
+                error: function() {
+                    // console.log('ajax fail');
+                  }
+                });
+            });
+
+            $(document).on('click', '.follow-btn', function() {
+              if ($(this).hasClass('active')) {
+                $('.block-btn').removeClass('disabled');
+              } else {
+                $('.block-btn').addClass('disabled');
+              }
+            });
+
+            $(document).on('click', '.block-btn', function() {
+              if ($(this).hasClass('active')) {
+                $('.follow-btn').removeClass('disabled');
+              } else {
+                $('.follow-btn').addClass('disabled');
+              }
+            });
+
+            $(document).on("click", ".ajax-follow", function() {
+              var btn = this;
+              var span =  $(btn).children("span");
+              var currentUsername = '{{ current_user.username }}';
+              var fUrl = '{{ url_for('api.follow') }}';
+              var pData = {'type': 'user', id: $(btn).attr('uid')};
+              // console.log(pData);
+              $.ajax({
+                url: fUrl,
+                data: pData,
+                type: 'POST',
+                success: function(response) {
+                  // console.log(response);
+                  var cancel = response['cancel'];
+                  if (cancel == 1) {
+                          $(span).removeClass("text-danger").addClass("text-muted");
+                          $(span).text('关注');
+                  } else {
+                    $(span).removeClass("text-muted").addClass("text-danger");
+                    $(span).text('取消关注');
+                  } if (window.location.href.indexOf(currentUsername) > -1) {
+                    location.reload(); // it is on current user page, force refresh
+                  }
+                },
+                error: function() {
+                    // console.log('ajax fail');
+                  }
+              });
+            });
+      {%- endif %}
+            $(document).ready(function() {
+              var needFormat = $('.format-time');
+              $.each(needFormat, function(index, value) {
+                  var time = $(value).text();
+                  $(value).text(moment(time).fromNow());
+                });
+
+              $('a[href*="#reply"]').not(".reply-link").addClass("text-success");
+            });
+    </script>
+</div>
+{% endblock -%}

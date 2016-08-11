@@ -1,0 +1,136 @@
+{%- extends "base.html" %}
+{%- from "common_macros/load_style_script.html" import fontawesome_css, moment_js %}
+{%- from "common_macros/macro.html" import render_avatar, render_flash_msg, render_pagination  %}
+{%- from "topic/macro.html" import render_last_reply, render_topic_info, 
+                    render_sift_link, render_node %}
+{%- block more_style %}
+    {{ fontawesome_css() }}
+{% endblock -%}
+{%- block more_script %}
+    {{ moment_js() }}
+{% endblock -%}
+{%- block title %}
+    {%- if node_name and sift_name %}
+        {%- set head = sift_name|addlt + node_name|addlt -%}
+    {% elif node_name -%}
+        {%- set head = node_name|addlt + '社区'|addlt -%}
+    {% elif sift_name -%}
+        {%- set head = sift_name|addlt + '社区'|addlt -%}
+    {%- else -%}
+        {%- set head = '社区'|addlt -%}
+    {% endif -%}
+    {{ head + config.SITE_NAME }}
+{% endblock -%}
+{%- block content %}
+<div class="container">
+    <div class="col-md-9">
+        {{ render_flash_msg() }}
+        <div class="topics panel panel-default">
+            <div class="panel-heading">
+                <ul class="list-inline sift-list pull-right margin-bottom-zero">
+                    <li class="grey-li"><span class="text-muted">筛选：</span></li>
+                    <li class="grey-li"><a href="{{ url_for('topic.index') }}">全部</a></li>
+                    <li class="grey-li">{{ render_sift_link('latest', sifts['latest']) }}</li>
+                    <li class="red-li">{{ render_sift_link('elite',sifts['elite']) }}</li>
+                    <li class="grey-li">{{ render_sift_link('noreply', sifts['noreply']) }}</li>
+                </ul>
+                <div class="clearfix"></div>
+            </div>
+            <div class="panel-body topics-panel list-group">
+                {%- for t in topics %}
+                    {%- if t.user_id not in asso_ids['user:block'] %}
+                    <li class="list-group-item topic-item clearfix">
+                        <div class="topic-avatar pull-left">
+                            <a href="{{ url_for('user.view_user', username=t.author.username) }}">{{ render_avatar(t.author.id, t.author.avatar_extension, 'md', 42) }}</a></div>
+                        <div class="single-topic-wrap">
+                            <div class="single-topic-title">
+                                <span style="vertical-align: sub; position: relative; top: -2px;" class="label label-grey">
+                                    <a style="color: #666;" href="{{ url_for('topic.index', node=t.node_id) }}">{{ t.node_id|nname }}</a>
+                                </span>
+                                <span class="title-span-wrap">
+                                    <a class="title-a" style="margin-left: 5px; font-size: 14pt;" href="{{ url_for('topic.single_topic', topic_id=t.id) }}">{{ t.title }}</a>
+                                </span>
+                                {%- if t.is_elite %}
+                                    <i style="color: #da974d; vertical-align: sub;" title="精华" class="fa fa-star-o" aria-hidden="true"></i>
+                                {% endif -%}
+                                {%- if t.is_pin %}
+                                    <i style="vertical-align: sub;" class="text-danger fa fa-thumb-tack text-danger" title="置顶" aria-hidden="true"></i>
+                                {% endif -%}
+                            </div>
+                            <div class="single-topic-status pull-right">
+                                <div class="single-topic-counter" title="回复／点击">
+                                    <span>
+                                        <span class="reply-count">{{ t|cachecount('reply') }}</span>
+                                        <span>/</span>
+                                        <span class="click-count text-muted">{{ t|cachecount('click') }}</span>
+                                    </span>
+                                </div>
+                                {{ render_last_reply(t.id, t|lastreply) }}
+                            </div>
+                       </div>
+                    </li>
+                    {%- endif %}
+            {% endfor -%}
+            </div>
+            <div class="panel-footer clearfix">
+            {%- if paginate.pages > 1 %}
+                {{ render_pagination(paginate) }}
+            {% endif -%}
+            </div>
+        </div>
+        {%- if not node_name and not sift_name %}
+            {{ render_node(nodes) }}
+        {% endif -%}
+    </div>
+    <div class="col-md-3">
+        <div class="panel panel-default">
+            <div class="panel-body center-align">
+            {%- if current_user.is_authenticated %}
+                <a href="{{ url_for('topic.new_topic') }}" class="btn btn-primary">发表新主题</a>
+            {%- else -%}
+                <a href="{{ url_for('account.sign_in', next=url_for('topic.new_topic')) }}" class="btn btn-warning">登录发表新主题</a>
+            {% endif -%}
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading center-align">今日热门主题</div>
+                <ul class="list-group">
+                    {% for h in hottest -%}
+                        <li class="list-group-item hot-topic">
+                        <a href="{{ url_for('user.view_user', username=h.name) }}">{{ render_avatar(h.uid, h.ext, 'sm', 24) }}</a> <a class="title-a" href="{{ url_for('topic.single_topic', topic_id=h.tid) }}">{{ h.title }}</a>
+                        </li>
+                    {%- endfor %}
+                </ul>
+        </div>
+        <div class="panel panel-default">
+        <div class="panel-heading center-align">布局复制</div>
+            <ul class="list-group">
+                <li class="list-group-item">
+                    <a href="https://cnodejs.org/" rel="nofollow" title="CNode 社区" target="_blank"><img src="https://o9ydx4gff.qnssl.com/logo/cnodejs.png-logo" style="width:130px; display: block; margin: 0 auto;"></a>
+                </li>
+                <li class="list-group-item">
+                    <a href="https://ruby-china.org" rel="nofollow" title="ruby china 社区" target="_blank"><img src="https://o9ydx4gff.qnssl.com/logo/ruby-china.png-logo" style="width:130px; display: block; margin: 0 auto;"></a>
+                </li>
+            </ul>
+        </div>
+        <div class="panel panel-default">
+        <div class="panel-heading center-align">社区统计</div>
+            <ul class="list-group">
+                <li class="list-group-item">会员：{{ stats['user'] }} 人</li>
+                <li class="list-group-item">主题：{{ stats['topic'] }} 个</li>
+                <li class="list-group-item">回复：{{ stats['reply'] }} 条</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            var needFormat = $('.format-time');
+            $.each(needFormat, function(index, value) {
+                var time = $(value).text();
+                $(value).text(moment(time).fromNow());
+            });
+        });
+    </script>
+</div>
+{% endblock -%}

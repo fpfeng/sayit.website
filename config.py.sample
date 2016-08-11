@@ -1,0 +1,123 @@
+import os
+from celery.schedules import crontab
+
+
+class Config(object):
+    # basic
+    SITE_NAME = 'sayit demo'
+    WTF_CSRF_ENABLED = False
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # encrypt
+    EMAIL_URL_SALT = 'hey-there'
+    BCRYPT_LOG_ROUNDS = 12
+    SECRET_KEY = 'what'
+
+    # avatar
+    AVATAR_FOLDER = os.path.abspath(os.path.dirname(__file__)) + '/sayit/static/avatar'
+    MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # max upload file size
+
+    # qiniu
+    QINIU_ACCESS_KEY = ''
+    QINIU_SECRET_KEY = ''
+    QINIU_BASE_URL = 'https://o9ydx4gff.qnssl.com/'
+
+    # pillow captcha generate font
+    FONT_PATH = os.path.abspath(os.path.dirname(__file__)) + '/Monoid-Bold.ttf'
+
+    # forum setting
+    TOPICS_PER_PAGE = 30
+    NOTICES_PER_PAGE = 30
+    FLOODING_HOUR = 24
+    FLOODING_TOPIC = 2
+    FLOODING_REPLY = 24
+
+    # email
+    MAIL_SERVER = 'smtp.yandex.com'
+    MAIL_PORT = '465'
+    MAIL_USE_SSL = True
+    MAIL_USERNAME = ''
+    MAIL_PASSWORD = ''
+
+    # verify email sending limit
+    CONFIRM_MAIL_LIMIT = 3
+    CONFIRM_MAIL_COUNTDOWN = 3600
+
+    # indx page redis cache regenerate
+    INDEX_CACHE_SECOND = 900
+
+
+class Test(Config):
+    TESTING = True
+    DEBUG = True
+
+    FLOODING_HOUR = 24
+    FLOODING_TOPIC = 10
+    FLOODING_REPLY = 24
+
+    SERVER_NAME = 'sayit.online'
+
+    SQLALCHEMY_DATABASE_URI = 'mysql://flask:flask@127.0.0.1/sayit_test?charset=utf8mb4'
+    MAIL_DEBUG = True
+    MAIL_SUPPRESS_SEND = True
+
+    # CELERY_ALWAYS_EAGER = True
+    AVATAR_FOLDER = os.path.abspath(os.path.dirname(__file__)) + '/sayit/static/avatar/test'
+
+    CELERY_BROKER_URL = 'redis://localhost:6379/1'
+    CELERY_RESULT_BACKEND = 'redis://localhost:6379/1'
+    REDIS_URL = 'redis://localhost:6379/2'
+
+    QINIU_BUCKET_NAME = ''
+
+    PRESERVE_CONTEXT_ON_EXCEPTION = False
+
+
+class Dev(Config):
+    DEBUG = True
+    MAIL_DEBUG = True
+    WTF_CSRF_ENABLED = True
+
+    SQLALCHEMY_DATABASE_URI = 'mysql://flask:flask@127.0.0.1/sayit_dev?charset=utf8mb4'
+
+    CELERY_BROKER_URL = 'redis://localhost:6379/3'
+    CELERY_RESULT_BACKEND = 'redis://localhost:6379/3'
+    REDIS_URL = 'redis://localhost:6379/4'
+
+    QINIU_BUCKET_NAME = ''
+
+    CELERYBEAT_SCHEDULE = {
+            'every-half-hour': {
+                'task': 'save_topic_click',
+                'schedule': crontab(minute='*/30'),
+            },
+        }
+
+
+class Product(Config):
+    WTF_CSRF_ENABLED = True
+
+    SECRET_KEY = 'what'
+    EMAIL_URL_SALT = 'what'
+
+    SQLALCHEMY_DATABASE_URI = 'mysql://flaskt:flask@127.0.0.1/sayit_product?charset=utf8mb4'
+
+    CELERY_BROKER_URL = 'redis://localhost:6379/5'
+    CELERY_RESULT_BACKEND = 'redis://localhost:6379/5'
+    REDIS_URL = 'redis://localhost:6379/6'
+
+    QINIU_BUCKET_NAME = ''
+
+    CELERYBEAT_SCHEDULE = {
+            'every-half-hour': {
+                'task': 'save_topic_click',
+                'schedule': crontab(minute='*/30'),
+            },
+        }
+
+
+config = {
+    'test': Test,
+    'dev': Dev,
+    'product': Product
+}

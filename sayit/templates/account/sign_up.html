@@ -1,0 +1,64 @@
+{%- from "common_macros/macro.html" import render_flash_msg, add_form_div with context %}
+{%- extends "base.html" %}
+{%- block title %}注册 - {{ config.SITE_NAME }}{% endblock -%}
+{%- block content %}
+    <div class="container col-md-4 col-md-offset-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">新帐号注册</div>
+            <div class="panel-body">
+                {{ render_flash_msg() }}
+                <form role="form" method="POST" action="{{ url_for('account.sign_up') }}">
+                        {{ form.hidden_tag() }}
+                        {{ add_form_div('username') }}
+                        {{ add_form_div('password') }}
+                        {{ add_form_div('confirm_password') }}
+                        {{ add_form_div('email') }}
+                        <div class="checkbox">
+                            <label for="email_private" class="checkbox">
+                                {{ form.email_private(value=1, checked=checked, id="email_private")}}{{ form.email_private.label.text }}
+                            </label>
+                        </div>
+                        <div class="input-group{% if form.captcha.errors %} has-error {% endif %}">
+                            {{ form.captcha(class='form-control', placeholder=form.captcha.label.text ) }}
+                            <span style="background: #fff; padding: 0;" class="input-group-addon">
+                            <a href="#new"><img class="get-new" src="{{ url_for('account.create_captcha') }}"></a>
+                            </span>
+                        </div>
+                        <p></p>
+                        <button type="submit" class="btn btn-md btn-primary">提交</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    <script>
+        function newCaptcha() {
+            d = new Date();
+            $('.get-new').attr('src', '{{ url_for('account.create_captcha') }}' + '?' + d.getTime());
+        };
+
+        $(document).ready(newCaptcha);
+        $(document).on('click', '.get-new', newCaptcha);
+    </script>
+    </div>
+{% endblock -%}
+
+{%- macro add_form_div(form_name, show_placeholder=true) %}
+    {%- if show_placeholder %}
+        <div class="form-group {% if form[form_name].errors %} has-error {% endif %}">
+            {{ form[form_name](class_="form-control", placeholder=form[form_name].label.text) }}
+        <p class="help-block">{{ form[form_name].errors[0] }}</p>
+        </div>
+    {%- else -%}
+        <div class="form-group">
+            {{ form[form_name](class_="form-control") }}
+        </div>
+    {% endif -%}
+{% endmacro -%}
+
+{%- macro create_error_div(msg) %}
+    <div class="alert alert-warning">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <span>{{ msg }}</span>
+    </div>
+{% endmacro -%}

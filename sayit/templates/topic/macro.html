@@ -1,0 +1,127 @@
+{%- from "common_macros/macro.html" import render_avatar %}
+
+{%- macro elite_pin_edit(action, chs) %}
+    <a class="elite-pin-a" href="#elite-pin" post-action="{{ action }}" tid="{{ topic.id }}" data-toggle="modal" data-target="#elite-pin-modal">{{ '开关' + chs }}</a>
+    {%- if topic[action + '_edit_uid'] %}
+        <span>操作:{{ topic[action + '_editor'].username }}</span>
+    {% endif -%}
+{% endmacro -%}
+
+{%- macro render_node(node_dict) %}
+    <div class="panel panel-default">
+        <div class="panel-heading">导航节点</div>
+            <div class="panel-body">
+            {% for parent_name, child_list in node_dict.iteritems() -%}
+                <div class="media">
+                    <div class="media-left node-parent text-muted">{{ parent_name }}</div>
+                    <div class="media-body">
+                    {% for node in child_list -%}
+                        <span class="node-child" value="{{ node.nid }}"><a href="{{ url_for('topic.index', node=node.nid) }}">{{ node.name }}</a></span>
+                    {%- endfor -%}
+                    </div>
+                </div>
+            {%- endfor %}
+        </div>
+    </div>
+{% endmacro -%}
+
+{%- macro render_last_reply(tid, info) %}
+    <div class="pull-right last-reply">
+        <a style="vertical-align: text-bottom;" href="{{ url_for('user.view_user', username=info['username']) }}">{{ render_avatar(info['uid'], info['ext'], 'sm', 24) }}</a>
+        <a class="nounderline" href="{{ url_for('topic.single_topic', topic_id=tid) }}#last-reply"><span class="text-muted format-time" title="{{ info['time'] }}">{{ info['time'] }}</span></a>
+    </div>
+{% endmacro -%}
+
+{%- macro render_forbid_reason(reason) %}
+    <div class="form-group">
+        <textarea class="form-control" disabled="disabled" rows="1" placeholder="{{ reason }}" cols="20" style="min-width: 100%; max-width: 100%;"></textarea>
+    </div>
+{% endmacro -%}
+
+{%- macro render_topic_info(topic) %}
+    <div class="text-muted">
+        <span>{{ topic.node.name|addlt }}</span>
+        <span>{{ topic.author.username|addlt }}</span>
+        <span class="format-time" title="{{ topic.create_time }}">{{ topic.create_time }}</span>
+    </div>
+{% endmacro -%}
+
+{%- macro render_sift_link(name, title) %}
+    {%- set node = request.args.get('node') -%}
+
+    {%- if request.args.get('sift') == name %}
+        {%- set class = 'current-sift' -%}
+    {%- else -%}
+        {%- set class = '' -%}
+    {% endif %}
+
+    {%- if node %}
+        <a class="{{ class }}" href="{{ url_for('topic.index', sift=name, node=node) }}">{{ title }}</a>
+    {%- else -%}
+        <a class="{{ class }}" href="{{ url_for('topic.index', sift=name) }}">{{ title }}</a>
+    {% endif %}
+{% endmacro -%}
+
+{%- macro render_bookmark_follow_btn(is_auth, int_id, key, label_key, icon_name, chs_label, post_action, post_type) %}
+        {%- set color_class = 'hover-danger' -%}
+        {%- set title = chs_label -%}
+        {%- set ajax_class = 'no' -%}
+        {%- if is_auth %}
+            {%- set ajax_class = 'ajax-a' -%}
+            {%- if int_id in asso_ids[key] %}
+                {%- set color_class = 'hover-muted' -%}
+                {%- set title = '取消' + chs_label -%}
+            {%- endif %}
+        {%- endif -%}
+        {%- set label_number = counts[label_key] -%}
+        {%- if label_number|int > 0 -%}
+            {%- set label_text = label_number + ' 个' + chs_label -%}
+        {%- else -%}
+            {%- set label_text = chs_label -%}
+        {% endif -%}
+        <a class="{{ ajax_class }} {{ color_class }} nounderline" title="{{ title }}" post-type="{{ post_type }}" post-action="{{ post_action }}" post-id="{{ int_id }}" href="#dontscroll"><i class="fa nounderline {{ icon_name }}"></i><span class="nounderline" value="{{ label_number }}">{{ label_text }}</span></a>
+{% endmacro -%}
+
+
+{%- macro render_reply_upvote(is_auth, reply) %}
+    {%- set rid = reply.id -%}
+    {%- set color_class = 'hover-danger' -%}
+    {%- set title = '赞' -%}
+    {%- set ajax_class = 'no' -%}
+    {%- if is_auth %}
+        {%- set ajax_class = 'ajax-a' -%}
+        {%- if rid in asso_ids['reply:upvote'] %}
+            {%- set color_class = 'hover-muted' -%}
+            {%- set title = '取消赞' -%}
+        {%- endif -%}
+    {%- endif -%}
+        {%- set label_number = reply|rupvo -%}
+        {%- if label_number|int > 0 -%}
+            {%- set label_text = label_number + ' 个赞' -%}
+        {%- else -%}
+            {%- set label_text = '' -%}
+        {% endif -%}
+        <a class="{{ ajax_class }} {{ color_class }} nounderline" title="{{ title }}" post-type="reply" post-action="upvote" post-id="{{ rid }}" href="#dontscroll"><i class="fa fa fa-thumbs-o-up nounderline"></i><span class="nounderline" value="{{ label_number }}">{{ label_text }}</span></a>
+{% endmacro -%}
+
+{%- macro render_topic_upvote(is_auth, topic) %}
+    {%- set tid = topic.id -%}
+    {%- set color_class = 'hover-danger' -%}
+    {%- set title = '赞' -%}
+    {%- set ajax_class = 'no' -%}
+    {%- if is_auth %}
+        {%- set ajax_class = 'ajax-a' -%}
+        {%- if tid in asso_ids['topic:upvote'] %}
+            {%- set color_class = 'hover-muted' -%}
+            {%- set title = '取消赞' -%}
+        {%- endif -%}
+    {%- endif -%}
+        {%- set upvote = counts['upvote'] -%}
+        {%- if upvote|int > 0 -%}
+            {%- set text = upvote + ' 个赞' -%}
+        {% else -%}
+            {%- set text = '赞' -%}
+        {% endif -%}
+        <a class="{{ ajax_class }} {{ color_class }} nounderline" title="{{ title }}" post-type="topic" post-action="upvote" post-id="{{ tid }}" href="#dontscroll"><i class="fa fa-thumbs-o-up fa-4x nounderline topic-upvote-btn"></i><br><span>{{ text }}</span></a><br>
+        
+{% endmacro -%}

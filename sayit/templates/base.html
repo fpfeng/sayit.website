@@ -1,0 +1,49 @@
+{%- from "common_macros/macro.html" import render_notice_icon with context %}
+<!DOCTYPE html>
+<html>
+<head>
+    {%- block head %}
+        <title>{%- block title %}{{ config.SITE_NAME }}{% endblock -%}</title>
+    {%- block script %}
+        <script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+        <script src="//cdn.bootcss.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+        {%- block more_script %}{% endblock -%}
+    {%- endblock %}
+    {%- block style %}
+        <link href="//cdn.bootcss.com/bootswatch/3.3.6/cosmo/bootstrap.min.css" rel="stylesheet">
+        {%- block more_style %}{% endblock -%}
+    {%- endblock %}
+        <link href="{{ url_for('index.static', filename='new.css') }}" rel="stylesheet">
+        <link rel="icon" type="image/png" href="{{ url_for('index.static', filename='favicon.png') }}">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+    {% endblock -%}
+</head>
+<body>
+  <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="navbar-header">
+          <a class="navbar-brand" href="#">{{ config.SITE_NAME }}</a>
+      </div>
+      <ul class="nav navbar-nav">
+          <li class=""><a href="{{ url_for('topic.index') }}">社区</a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right nav-right-fix">
+          {%- if current_user.is_authenticated -%}
+            {{ render_notice_icon() }}
+            <li class="dropdown">
+              <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{ current_user.username }}<span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a href="{{ url_for('user.view_user', username=current_user.username) }}">我的信息</a></li>
+                <li><a href="{{ url_for('account.edit') }}">个人设置</a></li>
+                <li><a href="{{ url_for('account.sign_out') }}">退出</a></li>
+              </ul>
+            </li>
+          {%- else -%}
+            <li><a href="{{ url_for('account.sign_in') }}">登录</a></li>
+            <li><a href="{{ url_for('account.sign_up') }}">注册</a></li>
+          {%- endif -%}
+      </ul>
+    </div>
+  </nav>
+{%- block content %}{% endblock -%}
+</body>
+</html>

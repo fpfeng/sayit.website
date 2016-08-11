@@ -1,0 +1,42 @@
+{%- macro render_follow_block_btn(key, action, btn_short, text) %}
+    {%- set uid = user.id -%}
+    {%- set btn = 'btn-' + btn_short -%}
+    {%- if uid in asso_ids[key] -%}
+        {%- set active = 'active' -%}
+        {%- set text = '取消' + text -%}
+    {%- else -%}
+        {%- set active = '' -%}
+    {% endif -%}
+    <div class="col-sm-6">
+        <a href="#dontscroll" post-action="{{ action }}" post-type="user" post-id="{{ uid }}" class="btn {{ btn }} btn-block ajax-a {{ active }}"><span>{{ text }}</span></a>
+    </div>
+{% endmacro -%}
+
+
+{%- macro render_follow_block(action) %}
+    {%- set uid = user.id -%}
+    {%- set active = '' -%}
+    {%- if action == 'follow' %}
+        {%- set text = '关注' -%}
+        {%- set key = 'user:following' -%}
+        {%- set btn = 'btn-success' -%}
+        {%- set oppsite_key = 'user:block' %}
+    {%- elif action == 'block' -%}
+        {%- set text = '屏蔽' -%}
+        {%- set key = 'user:block' -%}
+        {%- set btn = 'btn-danger' -%}
+        {%- set oppsite_key = 'user:following' %}
+    {%- endif %}
+    {%-if uid in asso_ids[oppsite_key] %}
+        {%- set disabled = 'disabled' %}
+    {%- else -%}
+        {%- set disabled = '' -%}
+        {%- if uid in asso_ids[key] -%}
+            {%- set active = 'active' -%}
+            {%- set text = '取消' + text -%}
+        {% endif -%}
+    {% endif -%}
+    <div class="col-sm-6">
+        <a href="#dontscroll" post-action="{{ action }}" post-type="user" post-id="{{ uid }}" class="btn {{ btn }} btn-block ajax-a {{ active }} {{ disabled }} {{ action + '-btn' }}"><span>{{ text }}</span></a>
+    </div>
+{% endmacro -%}
