@@ -128,9 +128,9 @@
     </div>
 {% endmacro -%}
 
-{%- macro render_avatar(uid, extension, size, int_size) %}
+{%- macro render_avatar(uid, extension, size, int_size, version=none) %}
     {%- if extension != '0' %}
-        <img class="img-avatar img-circle" src="{{ config.QINIU_BASE_URL}}{{ 'avatar/' + uid|string }}.{{ extension }}-{{ size }}" height="{{ int_size }}" width="{{ int_size }}">
+        <img class="img-avatar img-circle" src="{{ config.QINIU_BASE_URL}}{{ 'avatar/' + uid|string }}.{{ extension }}-{{ size }}{{ '?' + version if version else '' }}" height="{{ int_size }}" width="{{ int_size }}">
     {%- else -%}
         <img class="img-avatar img-circle" src="{{ config.QINIU_BASE_URL}}default.png-{{ size }}" height="{{ int_size }}" width="{{ int_size }}">
     {%- endif -%}

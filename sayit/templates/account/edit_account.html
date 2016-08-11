@@ -78,7 +78,7 @@
         <div class="panel panel-default">
             <div class="panel-heading">更改头像后请等待上传到CDN</div>
             <div class="panel-body">
-                {{ render_avatar(current_user.id, current_user.avatar_extension, 'lg', 96) }}
+                {{ render_avatar(current_user.id, current_user.avatar_extension, 'lg', 96, range(1, 1000)|random|string) }}
             </div>
         </div>
     </div>
