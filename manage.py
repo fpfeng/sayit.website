@@ -57,10 +57,7 @@ def cover():
 def fake_site():
     from datetime import datetime, timedelta
     from sayit.models import User, UserRole, Topic, Reply, UserFollowUser, Node
-    os.environ['FLKCONF'] = 'dev'
     print 'just wait a moment, ingore truncated username warning'
-    ctx = app.app_context()
-    ctx.push()
     db.drop_all()
     redis_store.flushdb()
     db.create_all()
@@ -121,7 +118,6 @@ def fake_site():
                   )
         db.session.add(r)
     db.session.commit()
-    ctx.pop()
     print 'done!'
 
 
