@@ -13,6 +13,7 @@ from sayit.models import User, UserRole, Node
 
 class BaseSetup(unittest.TestCase):
     def setUp(self):
+        db.drop_all()
         self.celery_proc = Popen(
             '''export FLKCONF="test" && exec celery -A \
             sayit.celery_worker.celery worker -l info -n test --purge''',
