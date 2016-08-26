@@ -546,7 +546,7 @@ class UserAttechment(IDColumn):
     file_hash = db.Column(db.String(200), nullable=False)
     upload_time = db.Column(db.DateTime, nullable=False, default=datetime.now)
 
-    user = one_to_many('User', 'upvote_files')
+    user = one_to_many('User', 'upload_files')
 
 
 class UserUpvoteReply(CancelableBase):
