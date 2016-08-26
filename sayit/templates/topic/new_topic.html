@@ -1,12 +1,12 @@
 {%- extends "base.html" %}
-{%- from "common_macros/load_style_script.html" import highlightjs_css,
+{%- from "common_macros/load_style_script.html" import highlightjs_css, atwho_css,
                                           fontawesome_css, highlight_js,
                                           atwho_js, qiniu_js, ajax_csrf_setup %}
 {%- from "common_macros/macro.html" import render_flash_msg %}
 {%- from "common_macros/macro.html" import add_form_div with context %}
 {%- from "topic/macro.html" import render_node %}
 {%- block more_style %}
-    <link href="//cdn.bootcss.com/at.js/1.5.1/css/jquery.atwho.min.css" rel="stylesheet">
+    {{ atwho_css() }}
     {{ highlightjs_css() }}
     {{ fontawesome_css() }}
 {% endblock -%}
