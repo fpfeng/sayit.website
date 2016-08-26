@@ -84,10 +84,11 @@
     </div>
     {{ ajax_csrf_setup() }}
     <script>
+      {%- set scheme = config.PREFERRED_URL_SCHEME -%}
       $(document).ready(function() {
         $('#content').atwho({
               at: "@",
-              data: "{{ url_for('api.user_json', _external=True) }}",
+              data: "{{ url_for('api.user_json', _external=True, _scheme=scheme) }}",
               limit: 5,
         });
 

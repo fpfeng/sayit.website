@@ -347,10 +347,10 @@
                     $(value).text(moment(time).fromNow());
                 });
             });
-
+            {%- set scheme = config.PREFERRED_URL_SCHEME -%}
             $('.reply-text').atwho({
               at: "@",
-              data: "{{ url_for('api.user_json', _external=True) }}",
+              data: "{{ url_for('api.user_json', _external=True, _scheme=scheme) }}",
               limit: 5,
             });
         </script>
