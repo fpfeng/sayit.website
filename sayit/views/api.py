@@ -117,7 +117,8 @@ def edit_email():
     if not g.user.email_confirmed:
         address = request.form['address']
         if re.match(r'[^@]+@[^@]+\.[^@]+', address):
-            if not User.query.filter_by(email=address).first():
+            u = User.query.filter_by(email=address).first()
+            if not u or g.user.id == u.id:
                 is_reach = check_mailto_limit(g.user.id)
                 if not is_reach:
                     create_send_email('confirm', address)
