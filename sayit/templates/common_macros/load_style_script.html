@@ -7,9 +7,26 @@
     <link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
 {% endmacro -%}
 
+{%- macro atwho_css() %}
+    <link href="//cdn.bootcss.com/at.js/1.5.1/css/jquery.atwho.min.css" rel="stylesheet">
+{% endmacro -%}
+
 {%- macro moment_js() %}
     <script src="//cdn.bootcss.com/moment.js/2.14.1/moment.min.js"></script>
     <script src="//cdn.bootcss.com/moment.js/2.14.1/locale/zh-cn.js"></script>
+{% endmacro -%}
+
+{%- macro qiniu_js() %}
+    {%- if config.DEBUG %}
+        <script src="https://staticfile.qnssl.com/plupload/2.1.8/moxie.js"></script>
+        <script src="https://staticfile.qnssl.com/plupload/2.1.8/plupload.dev.js"></script>
+        <script src="https://staticfile.qnssl.com/plupload/2.1.8/i18n/zh_CN.js"></script>
+        <script src="https://staticfile.qnssl.com/qiniu-js-sdk/1.0.14-beta/qiniu.js"></script>
+    {%- else -%}
+        <script src="https://staticfile.qnssl.com/plupload/2.1.8/plupload.full.min.js"></script>
+        <script src="https://staticfile.qnssl.com/plupload/2.1.8/i18n/zh_CN.js"></script>
+        <script src="https://staticfile.qnssl.com/qiniu-js-sdk/1.0.14-beta/qiniu.min.js"></script>
+    {% endif -%}
 {% endmacro -%}
 
 {%- macro highlight_js() %}
@@ -17,6 +34,10 @@
     <script>hljs.initHighlightingOnLoad();</script>
 {% endmacro -%}
 
+{%- macro atwho_js() %}
+    <script src="//cdn.bootcss.com/Caret.js/0.3.1/jquery.caret.min.js"></script>
+    <script src="//cdn.bootcss.com/at.js/1.5.1/js/jquery.atwho.min.js"></script>
+{% endmacro -%}
 
 {%- macro ajax_csrf_setup() %}
     <script>

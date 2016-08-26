@@ -538,6 +538,17 @@ class UserNotice(IDColumn):
         return '<notice #{0}>'.format(self.id)
 
 
+class UserAttechment(IDColumn):
+    __tablename__ = 'user_attachment'
+
+    uid = db.Column(MEDIUMINT, db.ForeignKey('user.id'))
+    file_key = db.Column(db.String(200), nullable=False)
+    file_hash = db.Column(db.String(200), nullable=False)
+    upload_time = db.Column(db.DateTime, nullable=False, default=datetime.now)
+
+    user = one_to_many('User', 'upvote_files')
+
+
 class UserUpvoteReply(CancelableBase):
     __tablename__ = 'user_upvote_reply'
 

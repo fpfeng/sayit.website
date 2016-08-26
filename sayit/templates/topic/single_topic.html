@@ -1,20 +1,19 @@
 {%- extends "base.html" %}
 {%- from "common_macros/load_style_script.html" import highlightjs_css,
-                                          fontawesome_css, moment_js,
-                                          highlight_js, ajax_csrf_setup %}
+                                          fontawesome_css, moment_js, atwho_js,
+                                          highlight_js, atwho_css, ajax_csrf_setup %}
 {%- from "common_macros/macro.html" import render_flash_msg, render_avatar,
                                         add_form_div with context %}
 {%- from "topic/macro.html" import render_bookmark_follow_btn,
                              render_reply_upvote, render_topic_upvote, 
                              elite_pin_edit, render_forbid_reason with context %}
 {%- block more_style %}
-    <link href="//cdn.bootcss.com/at.js/1.5.1/css/jquery.atwho.min.css" rel="stylesheet">
+    {{ atwho_css() }}
     {{ highlightjs_css() }}
     {{ fontawesome_css() }}
 {% endblock -%}
 {%- block more_script %}
-    <script src="//cdn.bootcss.com/Caret.js/0.3.1/jquery.caret.min.js"></script>
-    <script src="//cdn.bootcss.com/at.js/1.5.1/js/jquery.atwho.min.js"></script>
+    {{ atwho_js() }}
     {{ moment_js() }}
     {{ highlight_js() }}
 {% endblock -%}

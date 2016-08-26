@@ -53,6 +53,19 @@ class TopicTestCase(BaseSetup):
             resp = self.client.get(url_for('topic.single_topic', topic_id=99))
             self.assertTrue(resp.status_code == 404)
 
+    def test_preview_post(self):
+        user = self.add_user()
+        user.set_verify_role()
+        db.session.commit()
+        with self.app.test_request_context():
+            content = '```print topicontent```'
+            self.login_user()
+            resp = self.client.post(url_for('topic.preview_topic'),
+                                    data={'md': content})
+            as_dict = eval(self.as_text(resp))
+            self.assertTrue('html' in as_dict)
+            self.assertTrue('print topicontent' in as_dict['html'])
+
     def test_edit_topic(self):
         user = self.add_user()
         user.set_verify_role()
@@ -138,6 +151,30 @@ class TopicTestCase(BaseSetup):
             self.assertTrue(u'子3' in self.as_text(resp))
             self.assertTrue('second_post' in self.as_text(resp))
             self.assertTrue('first_post' not in self.as_text(resp))
+
+    def test_qiniu_related(self):
+        user = self.add_user()
+        user.set_verify_role()
+        db.session.commit()
+        with self.app.test_request_context():
+            self.login_user()
+            resp = self.client.get(url_for('topic.gen_qtoken'))
+            as_dict = eval(self.as_text(resp))
+            self.assertTrue('uptoken' in as_dict)
+
+            resp = self.client.get(url_for('topic.gen_qkey'))
+            as_dict = eval(self.as_text(resp))
+            self.assertTrue('key' in as_dict)
+
+            key = 'fakedate/' + as_dict['key'] + '.fake_extension'
+            resp = self.client.post(url_for('topic.save_qkey'),
+                                    data={'key': key, 'hash': '123'})
+            self.assertTrue(resp.status_code == 200)
+
+            key = 'fakedate/shouldget403error.fake_extension'
+            resp = self.client.post(url_for('topic.save_qkey'),
+                                    data={'key': 'notexist', 'hash': '123'})
+            self.assertTrue(resp.status_code == 403)
 
 if __name__ == '__main__':
     unittest.main()

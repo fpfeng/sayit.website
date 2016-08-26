@@ -1,5 +1,6 @@
 # coding: utf-8
 import ast
+import uuid
 from datetime import datetime, timedelta
 from collections import defaultdict
 from flask import current_app
@@ -629,3 +630,14 @@ def counter_add(_id, _type, action, number, uid=0):
             if rs.exists(hset_page_key(_type, uid)):
                 rs.hincrby(hset_page_key(_type, uid), 'follow', number)
     return current
+
+
+def generate_qiniu_key():
+    key = uuid.uuid4().hex
+    rs.set(key, 1)
+    rs.expire(key, 600)
+    return key
+
+
+def valid_qiniu_key(key):
+    return rs.exists(key)

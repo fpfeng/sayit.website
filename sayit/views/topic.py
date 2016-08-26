@@ -3,19 +3,20 @@ import re
 from datetime import datetime
 from functools import partial
 from flask import Blueprint, render_template, current_app, redirect, url_for, \
-            g, flash, request, abort
+            g, flash, request, abort, jsonify
 from flask_login import login_required, current_user
 from sqlalchemy.orm.exc import NoResultFound
-from ..models import User, Topic, Node, Reply
+from ..models import User, Topic, Node, Reply, UserAttechment
 from ..forms import TopicForm, ReplyForm
 from ..util.async_task import user_mention
 from ..util.md_html import to_html
 from ..g_func import user_and_session
+from ..exts import qniu
 from ..redis_ugly_wrap import hset_topic_key, get_user_asso_ids, \
         get_page_counter, add_click_count, get_topic_field_count, \
         update_topic_cache, get_node_list, get_child_node_id, \
         user_can_post, add_user_post_count, site_stats, today_hottest,\
-        get_node_names
+        get_node_names, generate_qiniu_key, valid_qiniu_key
 
 
 topic = Blueprint('topic', __name__,  template_folder='../templates/topic')
@@ -201,6 +202,44 @@ def new_topic():
         else:
             flash(u'大哥不要灌水好吗', 'warning')
         return go_index()
+
+
+@topic.route('/preview_topic', methods=['POST'])
+@login_required
+def preview_topic():
+    md = request.form['md']
+    md, _ = link_mention_floor_and_user(md)
+    return jsonify({'html': to_html(md)}), 200
+
+
+@topic.route('/gen_qtoken')
+@login_required
+def gen_qtoken():
+    return jsonify({'uptoken': qniu.upload_token(
+                                current_app.config['QINIU_BUCKET_NAME'],
+                                expires=900)}), 200
+
+
+@topic.route('/gen_qkey')
+@login_required
+def gen_qkey():
+    return jsonify({'key': generate_qiniu_key()}), 200
+
+
+@topic.route('/save_qkey', methods=['POST'])
+@login_required
+def save_qkey():
+    # as uploads/2016/8/26/1adfd4ae700747e192a79964c58d95c8.jpg
+    full = request.form.get('key')
+    short = full[full.rfind('/') + 1:full.find('.')]
+    if valid_qiniu_key(short):
+        a = UserAttechment(uid=current_user.id,
+                           file_key=full,
+                           file_hash=request.form['hash'])
+        g.session.add(a)
+        g.session.commit()
+        return ('', 200)
+    return ('', 403)
 
 
 def go_index():
