@@ -1,10 +1,10 @@
 # coding: utf-8
 import unittest
 from StringIO import StringIO
-from flask import url_for, session
+from flask import url_for
 from base_setup import BaseSetup
 from sayit.exts import db
-from sayit.models import UserRole, User
+from sayit.models import User
 from sayit.util.safe_token import create_email_token
 
 
@@ -27,14 +27,13 @@ class AccountTestCase(BaseSetup):
                           confirm_password=self.password,
                           email=self.email,
                           captcha='12345',
-                          ))
-            self.assertTrue(resp.status_code == 302)
+                          ), follow_redirects=True)
+            self.assertTrue(resp.status_code == 200)
+            self.assertTrue(u'注册成功' in self.as_text(resp))
 
-        resp = self.client.post(url_for('account.sign_in'), data=dict(
-                                username=self.username,
-                                password=self.password,
-                                ), follow_redirects=True)
-        self.assertTrue(u'你现在登录了' in self.as_text(resp))
+        resp = self.client.get(url_for('account.sign_in'), follow_redirects=True)
+        # if user already login, redirect to topic index
+        self.assertTrue(u'筛选' in self.as_text(resp))
 
         resp = self.client.get(url_for('account.sign_out'), follow_redirects=True)
         self.assertTrue(u'已经退出' in self.as_text(resp))
@@ -56,6 +55,12 @@ class AccountTestCase(BaseSetup):
                           captcha='12345',
                           ))
         self.assertTrue(u'用户名已存在记录' in self.as_text(resp))
+
+        resp = self.client.post(url_for('account.sign_in'), data=dict(
+                                username=self.username,
+                                password=self.password,
+                                ), follow_redirects=True)
+        self.assertTrue(u'你现在登录了' in self.as_text(resp))
 
     def test_sign_in_fail(self):
         resp = self.client.post(url_for('account.sign_in'), data=dict(
