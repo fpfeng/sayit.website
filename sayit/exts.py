@@ -18,7 +18,7 @@ class Anonymous(AnonymousUserMixin):
 
 
 def get_app_config():
-    return config[os.getenv('FLKCONF') or 'test']
+    return config[os.getenv('FLKCONF') or 'product']
 
 login_manager = LoginManager()
 login_manager.login_message = u'请登录后浏览'
