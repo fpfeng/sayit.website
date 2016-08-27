@@ -226,11 +226,15 @@ pre {
 }
 
 .single-topic-title {
-    width: 73%;
+    white-space: nowrap;
+    overflow:hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
 }
 
 .title-span-wrap > a {
     display: inline-block;
+    min-width: 50px;
     max-width: 400px;
     white-space: nowrap;
     vertical-align: text-top;
@@ -253,10 +257,10 @@ pre {
     display: inline-block;
 }
 
-.single-topic-status {
+/*.single-topic-status {
     width: 27%;
 }
-
+*/
 
 .topics-panel {
     padding: 0;
