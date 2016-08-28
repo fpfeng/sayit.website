@@ -56,17 +56,26 @@ def cover():
 @manager.command
 def fake_site():
     from datetime import datetime, timedelta
-    from sayit.models import User, UserRole, Topic, Reply, UserFollowUser, Node
+    from sayit.models import User, UserRole, Topic, Reply, UserFollowUser, \
+        Node, UserUpvoteReply, UserUpvoteTopic, UserFollowTopic, UserBookmarkTopic
     print 'just wait a moment, ingore truncated username warning'
     db.drop_all()
     redis_store.flushdb()
     db.create_all()
     UserRole.create_role()
     Node.create_product_node()
-    User.generate_fake()
-    Topic.generate_fake()
-    Reply.generate_fake()
-    UserFollowUser.generate_fake()
+    need_fake = [
+              User,
+              Topic,
+              Reply,
+              UserFollowUser,
+              UserUpvoteReply,
+              UserUpvoteTopic,
+              UserFollowTopic,
+              UserBookmarkTopic
+              ]
+    for model in need_fake:
+        model.generate_fake()
 
     days_ago = datetime.now() - timedelta(days=2)
     a = User(id=1,

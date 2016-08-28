@@ -475,6 +475,24 @@ class UserToTopicBase(CancelableBase):
     def parse_table_action(cls):
         return cls.__tablename__.replace('user_', '').replace('_topic', '')
 
+    @classmethod
+    def generate_fake(cls):
+        from random import seed, randint
+
+        seed()
+        for tid in range(100, 179):
+            exist_uid = []
+            for i in range(randint(1, 20)):
+                uid = randint(10, 50)
+                if uid not in exist_uid:
+                    new = cls(uid=uid, tid=tid)
+                    db.session.add(new)
+                    exist_uid.append(uid)
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
+
 
 class UserFollowTopic(UserToTopicBase):
     __tablename__ = 'user_follow_topic'
@@ -557,6 +575,24 @@ class UserUpvoteReply(CancelableBase):
 
     user = one_to_many('User', 'upvote_replies')
     reply = one_to_many('Reply', 'upvote_users')
+
+    @classmethod
+    def generate_fake(cls):
+        from random import seed, randint, sample
+
+        seed()
+        for rid in sample(xrange(886), 150):
+            exist_uid = []
+            for i in range(randint(1, 20)):
+                uid = randint(10, 50)
+                if uid not in exist_uid:
+                    new = UserUpvoteReply(uid=uid, rid=rid)
+                    db.session.add(new)
+                    exist_uid.append(uid)
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
 
     def __repr__(self):
         return '<reply upvote u:{0} r:{1}>'.format(self.uid, self.rid)
