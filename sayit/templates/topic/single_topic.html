@@ -86,6 +86,7 @@
                         <span class="label label-warning">已被 {{ topic.delete_by.username }} 删除</span>
                     {% endif -%}
                 {%- endif %}
+                {{ render_topic_upvote(is_auth, topic, 'panel') }}
                 </div>
                 <div class="pull-right">
                 {{ render_bookmark_follow_btn(is_auth, topic.id, 'topic:follow', 'follow', 'fa-eye', '关注', 'follow', 'topic') }}

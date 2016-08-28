@@ -123,5 +123,30 @@
             {%- set text = '赞' -%}
         {% endif -%}
         <a class="{{ ajax_class }} {{ color_class }} nounderline" title="{{ title }}" post-type="topic" post-action="upvote" post-id="{{ tid }}" href="#dontscroll"><i class="fa fa-thumbs-o-up fa-4x nounderline topic-upvote-btn"></i><br><span>{{ text }}</span></a><br>
-        
+{% endmacro -%}
+
+{%- macro render_topic_upvote(is_auth, topic, where='sidebar') %}
+    {%- set tid = topic.id -%}
+    {%- set color_class = 'hover-danger' -%}
+    {%- set title = '赞' -%}
+    {%- set ajax_class = 'no' -%}
+    {%- if is_auth %}
+        {%- set ajax_class = 'ajax-a' -%}
+        {%- if tid in asso_ids['topic:upvote'] %}
+            {%- set color_class = 'hover-muted' -%}
+            {%- set title = '取消赞' -%}
+        {%- endif -%}
+    {%- endif -%}
+        {%- set upvote = counts['upvote'] -%}
+        {%- if upvote|int > 0 -%}
+            {%- set text = upvote + ' 个赞' -%}
+        {% else -%}
+            {%- set text = '赞' -%}
+        {% endif -%}
+
+    {%- if where == 'panel' %}
+        <a class="{{ ajax_class }} {{ color_class }} nounderline" title="{{ title }}" post-type="topic" post-action="upvote" post-id="{{ tid }}" href="#dontscroll"><i class="fa fa fa-thumbs-o-up nounderline"></i><span class="nounderline" value="{{ label_number }}">{{ text }}</span></a>
+    {%- else -%}
+        <a class="{{ ajax_class }} {{ color_class }} nounderline" title="{{ title }}" post-type="topic" post-action="upvote" post-id="{{ tid }}" href="#dontscroll"><i class="fa fa-thumbs-o-up fa-4x nounderline topic-upvote-btn"></i><br><span>{{ text }}</span></a><br>
+    {% endif -%}
 {% endmacro -%}
