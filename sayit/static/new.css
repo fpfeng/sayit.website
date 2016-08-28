@@ -471,3 +471,25 @@ pre {
 .hide-element {
   display: none;
 }
+
+.topic-sidebar {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .affix {
+        position: fixed;
+    }
+}
+
+@media (max-width: 767px) {
+    .affix {
+        position: static;
+    }
+}
+
+@media (min-width: 960px) {
+    .topic-sidebar {
+    display: block;
+    }
+}
